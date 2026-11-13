@@ -1,0 +1,22 @@
+@startuml
+!include C4_Component_template.puml
+Container_Boundary(userService, "User Service (Kotlin / Spring Boot)") {
+    Component(user_ctrl, "UserController", "REST API", "Принимает HTTP-запросы на управление и проверку пользователей")
+    Component(user_svc, "UserService", "Business Logic", "Проверяет авторизацию пользователя, сохраняет данные зарегистрированных пользователей")
+    Component(yandex_oauth_svc, "YandexOAuthService", "Business Logic", "Выполняет проверку токена")
+    Component(yandex_client, "YandexClient", "Web Client", "Выполняет запрос к провайдеру OAuth")
+    Component(user_repo, "UserRepository", "Data Access", "Читает и записывает данные о пользователях в БД")
+}
+
+ContainerDb(userDB, "user_db", "PostgreSQL", "Хранит данные о зарегистрированных пользователях")
+Container(apiGateway, "API Gateway", "Go, Gin", "Текущий монолит, в будущем gateway - маршрутизатор запросов")
+System_Ext(yandex, "Yandex ID", "OAuth 2.0 Identity Provider")
+
+Rel(apiGateway, user_ctrl, "")
+Rel(user_ctrl, user_svc, "")
+Rel(user_svc, yandex_oauth_svc, "Обращается для проверки токена")
+Rel(yandex_oauth_svc, yandex_client, "")
+Rel(yandex_client, yandex, "Обменивает auth_code на токен")
+Rel(user_svc, user_repo, "Обращается за данными из БД")
+Rel(user_repo, userDB, "Сохраняет, получает данные пользователей")
+@enduml

@@ -1,0 +1,43 @@
+@startuml
+!include C4_Container_template.puml
+Person(user, "Пользователь")
+System_Boundary(smartHome, "Smart Home") {
+    Container(frontend, "Frontend", "ReactJS / TypeScript", "Веб-интерфейс для пользователей")
+
+    Container(apiGateway, "API Gateway", "Go, Gin", "Текущий монолит, в будущем gateway - маршрутизатор запросов")
+    Container(userService, "User Service", "Kotlin, Spring Boot", "Регистрация и управление пользователями")
+    Container(deviceService, "Device Service", "Kotlin, Spring Boot", "Регистрация и управление устройствами")
+    Container(scenarioService, "Scenario Service", "Kotlin, Spring Boot", "Создание сценариев и выполнение команд")
+    Container(telemetryService, "Telemetry Service", "Kotlin, Spring Boot", "Приём показаний и история телеметрии")
+
+    ContainerDb(userDB, "user_db", "PostgreSQL", "Хранит данные о зарегистрированных пользователях")
+    ContainerDb(deviceDB, "device_db", "PostgreSQL", "Хранит данные об устройствах")
+    ContainerDb(scenarioDB, "scenario_db", "PostgreSQL", "Хранит пользовательские сценарии управления устройствами")
+    ContainerDb(telemetryDB, "telemetry_db", "TimescaleDB", "Хранит данные телеметрии")
+
+    ContainerQueue(mqtt, "Брокер сообщений", "Mosquitto MQTT Broker", "Для связи с устройствами умного дома")
+}
+System_Ext(sensors, "Устройства умного дома (датчики и т.п.)", "Настроены для работы с MQTT: умеют считывать и обрабатывать команды, автоматически отправлять показатели")
+System_Ext(yandex, "Yandex ID", "OAuth 2.0 Identity Provider")
+
+Rel(user, frontend, "Использует интерфейс для взаимодействия с устройствами")
+
+Rel(frontend, apiGateway, "Запрашивает/управляет данными через единую точку входа на backend (получив auth_code)")
+Rel(apiGateway, userService, "")
+Rel(apiGateway, deviceService, "")
+Rel(apiGateway, scenarioService, "")
+Rel(apiGateway, telemetryService, "")
+
+Rel(userService, userDB, "")
+Rel(deviceService, deviceDB, "")
+Rel(scenarioService, scenarioDB, "")
+Rel(telemetryService, telemetryDB, "")
+
+Rel(telemetryService, mqtt, "Читает показатели и сохраняет")
+Rel(scenarioService, mqtt, "Читает показатели и отправляет команды управления, если требуется по сценарию")
+
+Rel(mqtt, sensors, "Получают команды управления")
+Rel(sensors, mqtt, "Отправляют показатели")
+Rel(frontend, yandex, "Перенаправляет пользователя для аутентификации")
+Rel(userService, yandex, "Обменивает код на токен")
+@enduml

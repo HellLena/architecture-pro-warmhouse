@@ -1,0 +1,20 @@
+@startuml
+!include C4_Component_template.puml
+Container_Boundary(telemetryService, "Telemetry Service (Kotlin / Spring Boot)") {
+    Component(telemetry_ctrl, "TelemetryController", "REST API", "Принимает HTTP-запросы на получение телеметрии")
+    Component(telemetry_svc, "TelemetryService", "Business Logic", "Обрабатывает логику сохранения и получения телеметрии")
+    Component(telemetry_listener, "TelemetryListener", "Business Logic", "Слушает топик с показаниями устройств из брокера сообщений, передаёт данные на обработку для сохранения в БД")
+    Component(telemetry_repo, "TelemetryRepository", "Data Access", "Читает и записывает данные о показателях устройств в БД")
+}
+
+ContainerDb(telemetryDB, "telemetry_db", "TimescaleDB", "Хранит данные телеметрии")
+Container(apiGateway, "API Gateway", "Go, Gin", "Текущий монолит, в будущем gateway - маршрутизатор запросов")
+ContainerQueue(mqtt, "Брокер сообщений", "Mosquitto MQTT Broker", "Для связи с устройствами умного дома")
+
+Rel(apiGateway, telemetry_ctrl, "")
+Rel(telemetry_ctrl, telemetry_svc, "")
+Rel(telemetry_svc, telemetry_repo, "")
+Rel(telemetry_repo, telemetryDB, "")
+Rel(mqtt, telemetry_listener, "Получает показания")
+Rel(telemetry_listener, telemetry_svc, "Передаёт полученные данные на обработку")
+@enduml

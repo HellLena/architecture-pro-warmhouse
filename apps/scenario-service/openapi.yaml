@@ -1,0 +1,140 @@
+openapi: 3.0.3
+info:
+  title: Smart Home - Scenario Service API
+  version: 1.0.0
+servers:
+  - url: /api/v1
+tags:
+  - name: Сценарии
+paths:
+  /scenarios:
+    get:
+      tags: [Сценарии]
+      summary: Получить список сценариев
+      parameters:
+        - name: userId
+          in: query
+          description: Фильтрация по идентификатору пользователя
+          required: true
+          schema:
+            type: string
+        - name: deviceId
+          in: query
+          description: Фильтрация по идентификатору устройства
+          required: false
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Список сценариев
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/Scenario' }
+    post:
+      tags: [Сценарии]
+      summary: Создать сценарий
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ScenarioWrite' }
+      responses:
+        '201':
+          description: Сценарий создан
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Scenario' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+  /scenarios/{scenarioId}:
+    parameters:
+      - name: scenarioId
+        in: path
+        required: true
+        schema: { type: number }
+    get:
+      tags: [Сценарии]
+      summary: Получение сценария по идентификатору
+      responses:
+        '200':
+          description: Сценарий
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Scenario' }
+        '404': { $ref: '#/components/responses/NotFound' }
+    put:
+      tags: [Сценарии]
+      summary: Обновление сценария
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ScenarioWrite' }
+      responses:
+        '200':
+          description: сценарий обновлён
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Scenario' }
+        '404': { $ref: '#/components/responses/NotFound' }
+    delete:
+      tags: [Сценарии]
+      summary: Удалить сценарий
+      responses:
+        '204': { description: сценарий удалён }
+        '404': { $ref: '#/components/responses/NotFound' }
+components:
+  schemas:
+    Scenario:
+      allOf:
+        - { $ref: '#/components/schemas/ScenarioWrite' }
+        - type: object
+          required: [id]
+          properties:
+            id: { type: number }
+    ScenarioWrite:
+      type: object
+      required: [name, deviceId, trigger, condition, command]
+      properties:
+        name: { type: string }
+        deviceId: { type: number }
+        trigger:
+          $ref: '#/components/schemas/ScenarioTrigger'
+        action:
+          $ref: '#/components/schemas/ScenarioCondition'
+        command:
+          $ref: '#/components/schemas/ScenarioAction'
+    ScenarioTrigger:
+      type: object
+      required: [metric]
+      properties:
+        metric: { type: string }
+    ScenarioCondition:
+      type: object
+      required: [ operator, value ]
+      properties:
+        operator: { type: string }
+        value: { type: string }
+    ScenarioAction:
+      type: object
+      required: [deviceId, command]
+      properties:
+        command: { type: string }
+    Error:
+      type: object
+      required: [code, message]
+      properties:
+        code: { type: string }
+        message: { type: string }
+  responses:
+    BadRequest:
+      description: Invalid request
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+    NotFound:
+      description: Сценарий не найден
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }

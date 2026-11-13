@@ -1,0 +1,125 @@
+asyncapi: 3.0.0
+info:
+  title: Smart Home - Обмен сообщениями с MQTT
+  version: 1.0.0
+  description: |
+    Проектный контракт внутреннего MQTT-взаимодействия Smart Home через Mosquitto.
+defaultContentType: application/json
+
+servers:
+  mosquitto:
+    host: mosquitto:1883
+    protocol: mqtt
+    description: Внутренний MQTT-брокер Mosquitto.
+
+channels:
+  deviceTelemetry:
+    address: devices/{deviceId}/telemetry
+    description: Телеметрия, публикуемая устройствами и потребляемая сервисами.
+    parameters:
+      deviceId:
+        description: Идентификатор устройства.
+    messages:
+      telemetryMessage:
+        $ref: '#/components/messages/TelemetryMessage'
+
+  deviceCommand:
+    address: devices/{deviceId}/commands
+    description: Команды управления, публикуемые Scenario Service для устройства.
+    parameters:
+      deviceId:
+        description: Идентификатор целевого устройства.
+    messages:
+      deviceCommandMessage:
+        $ref: '#/components/messages/DeviceCommandMessage'
+
+operations:
+  telemetryServiceReceivesTelemetry:
+    action: receive
+    channel:
+      $ref: '#/channels/deviceTelemetry'
+    summary: Telemetry Service получает показания устройств.
+    description: |
+      Устройство публикует показание; Telemetry Service принимает его
+      через MQTT listener и сохраняет в хранилище телеметрии.
+    messages:
+      - $ref: '#/channels/deviceTelemetry/messages/telemetryMessage'
+
+  scenarioServiceReceivesTelemetry:
+    action: receive
+    channel:
+      $ref: '#/channels/deviceTelemetry'
+    summary: Scenario Service получает показания для проверки сценариев.
+    description: |
+      Scenario Service подписывается на поток телеметрии и использует
+      полученные значения для проверки условий активных сценариев.
+    messages:
+      - $ref: '#/channels/deviceTelemetry/messages/telemetryMessage'
+
+  scenarioServicePublishesDeviceCommand:
+    action: send
+    channel:
+      $ref: '#/channels/deviceCommand'
+    summary: Scenario Service отправляет команду устройству.
+    description: |
+      После успешной проверки условий Scenario Service публикует команду
+      в MQTT-топик целевого устройства.
+    messages:
+      - $ref: '#/channels/deviceCommand/messages/deviceCommandMessage'
+
+components:
+  messages:
+    TelemetryMessage:
+      name: TelemetryMessage
+      title: Сообщение телеметрии
+      contentType: application/json
+      payload:
+        type: object
+        required:
+          - deviceId
+          - timestamp
+          - payload
+        properties:
+          deviceId:
+            type: string
+            format: uuid
+          timestamp:
+            type: string
+            format: date-time
+          metrics:
+            type: object
+            description: Набор измерений; конкретные ключи зависят от типа устройства.
+            additionalProperties: true
+      examples:
+        - name: temperatureReading
+          payload:
+            deviceId: "00000000-0000-4000-8000-000000000001"
+            timestamp: "2026-11-12T10:15:30Z"
+            metrics:
+              temperature: 21.5
+
+    DeviceCommandMessage:
+      name: DeviceCommandMessage
+      title: Команда управления устройством
+      contentType: application/json
+      payload:
+        type: object
+        required:
+          - command
+        properties:
+          command:
+            type: string
+            description: Название команды, поддерживаемой устройством.
+          parameters:
+            type: object
+            additionalProperties: true
+            description: Параметры команды; схема зависит от типа устройства.
+          correlationId:
+            type: string
+            description: Необязательный идентификатор для корреляции команды и результата.
+      examples:
+        - name: switchOn
+          payload:
+            command: "turnOn"
+            parameters: {}
+            correlationId: "cmd-000001"

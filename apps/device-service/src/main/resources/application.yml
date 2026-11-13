@@ -1,0 +1,18 @@
+server:
+  port: 8082
+
+spring:
+  application:
+    name: device-service
+
+  r2dbc:
+    url: ${R2DBC_URL:r2dbc:postgresql://localhost:5433/device_db}
+    username: ${DEVICE_DB_USER:postgres}
+    password: ${DEVICE_DB_PASSWORD:postgres}
+
+  liquibase:
+    enabled: true
+    url: ${JDBC_URL:jdbc:postgresql://localhost:5433/device_db}
+    user: ${DEVICE_DB_USER:postgres}
+    password: ${DEVICE_DB_PASSWORD:postgres}
+    change-log: classpath:db/changelog/db.changelog-master.yaml

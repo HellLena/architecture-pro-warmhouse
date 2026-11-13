@@ -1,0 +1,13 @@
+@startuml
+!include C4_Context_template.puml
+Person(user, "Пользователь")
+System(smartHome, "Smart Home", "Позволяет управлять устройствами умного дома, собирает телеметрию, обрабатывает пользовательские сценарии")
+System_Ext(sensors, "Устройства умного дома (датчики и т.п.)", "Настроены для работы с MQTT: умеют считывать и обрабатывать команды, автоматически отправлять показатели")
+System_Ext(yandex, "Yandex ID", "OAuth 2.0 Identity Provider")
+
+Rel(user, smartHome, "Использует интерфейс для взаимодействия с устройствами")
+Rel(smartHome, sensors, "Передаёт команды на управление")
+Rel(sensors, smartHome, "Собирает показатели и результаты выполнения команд")
+Rel(smartHome, yandex, "Перенаправляет пользователя для аутентификации")
+Rel(yandex, smartHome, "Получает токен")
+@enduml

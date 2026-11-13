@@ -42,6 +42,7 @@ func (h *SensorHandler) RegisterRoutes(router *gin.RouterGroup) {
 	}
 }
 
+// При переходе на микросервисную архитектуру этот метод будет заменен вызовом telemetry-service
 // GetSensors handles GET /api/v1/sensors
 func (h *SensorHandler) GetSensors(c *gin.Context) {
 	sensors, err := h.DB.GetSensors(context.Background())
@@ -69,6 +70,7 @@ func (h *SensorHandler) GetSensors(c *gin.Context) {
 	c.JSON(http.StatusOK, sensors)
 }
 
+// При переходе на микросервисную архитектуру этот метод будет заменен вызовом device-service
 // GetSensorByID handles GET /api/v1/sensors/:id
 func (h *SensorHandler) GetSensorByID(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("id"))
@@ -100,6 +102,7 @@ func (h *SensorHandler) GetSensorByID(c *gin.Context) {
 	c.JSON(http.StatusOK, sensor)
 }
 
+// При переходе на микросервисную архитектуру этот метод будет заменен вызовом telemetry-service
 // GetTemperatureByLocation handles GET /api/v1/sensors/temperature/:location
 func (h *SensorHandler) GetTemperatureByLocation(c *gin.Context) {
 	location := c.Param("location")
@@ -137,6 +140,9 @@ func (h *SensorHandler) CreateSensor(c *gin.Context) {
 	}
 
 	sensor, err := h.DB.CreateSensor(context.Background(), sensorCreate)
+	// Предполагается, что при переходе к микросервисной архитектуре
+	// здесь дополнительно будет выполняться вызов к device-service для создания устройств в device_db.
+	// После полного перехода останется только вызов к device-service.
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -160,6 +166,9 @@ func (h *SensorHandler) UpdateSensor(c *gin.Context) {
 	}
 
 	sensor, err := h.DB.UpdateSensor(context.Background(), id, sensorUpdate)
+	// Предполагается, что при переходе к микросервисной архитектуре
+    // здесь дополнительно будет выполняться вызов к device-service для создания устройств в device_db.
+    // После полного перехода останется только вызов к device-service.
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -177,6 +186,9 @@ func (h *SensorHandler) DeleteSensor(c *gin.Context) {
 	}
 
 	err = h.DB.DeleteSensor(context.Background(), id)
+	// Предполагается, что при переходе к микросервисной архитектуре
+    // здесь дополнительно будет выполняться вызов к device-service для создания устройств в device_db.
+    // После полного перехода останется только вызов к device-service.
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -185,6 +197,7 @@ func (h *SensorHandler) DeleteSensor(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Sensor deleted successfully"})
 }
 
+// При переходе на микросервисную архитектуру этот метод будет заменен вызовом telemetry-service
 // UpdateSensorValue handles PATCH /api/v1/sensors/:id/value
 func (h *SensorHandler) UpdateSensorValue(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("id"))
