@@ -1,0 +1,57 @@
+@startuml
+skinparam classAttributeIconSize 0
+
+package "Telemetry Service" {
+
+    class TelemetryController <<REST API>> {
+        +get(request: TelemetryFilterRequest): List<DeviceTelemetry>
+    }
+
+    class TelemetryListener {
+        @ServiceActivator +listen(payload: String)
+    }
+
+    interface TelemetryService <<Business Logic>> {
+        +get(request: TelemetryFilterRequest): List<DeviceTelemetry>
+        +create(request: DeviceTelemetryPayload): List<DeviceTelemetry>
+    }
+
+    interface TelemetryRepository {
+        +get(request: TelemetryFilterRequest): List<DeviceTelemetry>
+        +save(request: DeviceTelemetryPayload): DeviceTelemetry
+    }
+
+    class TelemetryFilterRequest {
+        +deviceId: Long
+        +dateFrom: Instant
+        +dateTo: Instant
+    }
+
+    interface DeviceTelemetry {
+        +id: Long
+        +deviceId: Long
+        +telemetry: Telemetry
+        +createdAt: Instant
+    }
+
+    interface Telemetry {
+    }
+
+    interface DeviceTelemetryPayload {
+       +deviceId: Long
+       +data: Telemetry
+    }
+}
+
+TelemetryFilterRequest --> TelemetryController
+TelemetryController --> TelemetryService
+TelemetryService --> TelemetryRepository
+TelemetryRepository --> DeviceTelemetry
+TelemetryListener --> DeviceTelemetryPayload
+DeviceTelemetryPayload --> TelemetryService
+
+note right of TelemetryListener
+  Слушает топик MQTT
+end note
+
+@enduml

@@ -1,0 +1,18 @@
+server:
+  port: 8083
+
+spring:
+  application:
+    name: telemetry-service
+
+  r2dbc:
+    url: ${R2DBC_URL:r2dbc:postgresql://localhost:5434/telemetry_db}
+    username: ${TELEMETRY_DB_USER:postgres}
+    password: ${TELEMETRY_DB_PASSWORD:postgres}
+
+  liquibase:
+    enabled: true
+    url: ${JDBC_URL:jdbc:postgresql://localhost:5434/telemetry_db}
+    user: ${TELEMETRY_DB_USER:postgres}
+    password: ${TELEMETRY_DB_PASSWORD:postgres}
+    change-log: classpath:db/changelog/db.changelog-master.yaml

@@ -1,0 +1,21 @@
+@startuml
+!include C4_Component_template.puml
+Container_Boundary(deviceService, "Device Service (Kotlin / Spring Boot)") {
+    Component(device_ctrl, "DeviceController", "REST API", "Принимает HTTP-запросы на управление устройствами")
+    Component(device_svc, "DeviceService", "Business Logic", "Управление устройствами")
+    Component(location_svc, "LocationService", "Business Logic", "Управление локациями")
+    Component(device_repo, "DeviceRepository", "Data Access", "Читает и записывает данные об устройствах в БД")
+    Component(location_repo, "LocationRepository", "Data Access", "Читает и записывает данные о локациях в БД")
+}
+
+ContainerDb(deviceDB, "device_db", "PostgreSQL", "Хранит данные об устройствах")
+Container(apiGateway, "API Gateway", "Go, Gin", "Текущий монолит, в будущем gateway - маршрутизатор запросов")
+
+Rel(apiGateway, device_ctrl, "")
+Rel(device_ctrl, device_svc, "")
+Rel(device_ctrl, location_svc, "")
+Rel(device_svc, device_repo, "")
+Rel(location_svc, location_repo, "")
+Rel(device_repo, deviceDB, "")
+Rel(location_repo, deviceDB, "")
+@enduml

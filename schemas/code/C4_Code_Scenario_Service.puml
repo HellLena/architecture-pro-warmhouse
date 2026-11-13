@@ -1,0 +1,66 @@
+@startuml
+skinparam classAttributeIconSize 0
+
+package "Scenario Service" {
+
+    class TelemetryListener {
+        @ServiceActivator +listen(payload: String)
+    }
+
+    interface ScenarioService <<Business Logic>> {
+        +checkAndTriggerCommand(payload: DeviceTelemetryPayload)
+    }
+
+    interface CommandService <<Business Logic>> {
+        +sendCommand(command: Command)
+    }
+
+    interface ScenarioRepository {
+        +findByDeviceId(deviceId: Long): DeviceScenario?
+    }
+
+    interface DeviceScenario {
+        +id: Long
+        +deviceId: Long
+        +trigger: Trigger
+        +condition: Condition
+        +action: Action
+        +createdAt: Instant
+        +updatedAt: Instant
+    }
+
+    interface Trigger {
+    }
+
+    interface Condition {
+    }
+
+    interface Action {
+    }
+
+    interface Command {
+    }
+
+    interface Telemetry {
+    }
+
+    interface DeviceTelemetryPayload {
+       +deviceId: Long
+       +data: Telemetry
+    }
+}
+
+TelemetryListener --> DeviceTelemetryPayload
+DeviceTelemetryPayload --> ScenarioService
+ScenarioService --> ScenarioRepository
+ScenarioService --> CommandService
+
+note right of TelemetryListener
+  Слушает топик MQTT
+end note
+
+note bottom of CommandService
+  Отправляет команду в топик MQTT
+end note
+
+@enduml

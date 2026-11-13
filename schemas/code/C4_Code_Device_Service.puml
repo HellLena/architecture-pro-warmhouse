@@ -1,0 +1,62 @@
+@startuml
+skinparam classAttributeIconSize 0
+
+package "Device Service" {
+
+    class DeviceController <<REST API>> {
+        +register(request: RegisterRequest): Device
+        +update(request: UpdateRequest): Device
+    }
+
+    interface DeviceService <<Business Logic>> {
+        +register(request: RegisterRequest): Device
+        +update(request: UpdateRequest): Device
+    }
+
+    interface DeviceRepository {
+        +save(entity: Device): Device
+    }
+
+    class RegisterRequest {
+        +userId: Long
+        +serialNumber: String
+        +type: DeviceType
+    }
+
+    class UpdateRequest {
+        +id: Long
+        +name: String?
+        +location_id: Long?
+    }
+
+    class Device {
+        +id: Long
+        +userId: Long
+        +serialNumber: String
+        +type: DeviceType
+        +state: DeviceState
+        +name: String?
+        +location_id: Long?
+        +createdAt: Instant
+        +updatedAt: Instant
+    }
+
+    enum DeviceType {
+        TEMPERATURE_SENSOR
+        LIGHT_SENSOR
+        GATE_SENSOR
+        VIDEO_CAMERA
+    }
+
+    enum DeviceState {
+        ACTIVE
+        INACTIVE
+    }
+}
+
+RegisterRequest --> DeviceController
+DeviceController --> DeviceService
+DeviceService --> DeviceRepository
+DeviceRepository --> Device
+
+@enduml

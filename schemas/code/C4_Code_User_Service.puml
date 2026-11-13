@@ -1,0 +1,45 @@
+@startuml
+skinparam classAttributeIconSize 0
+
+package "User Service" {
+
+    class UserController <<REST API>> {
+        +authenticate(authCode: String): UserResponse
+    }
+
+    interface UserService <<Business Logic>> {
+        +authenticate(authCode: String): User
+        +getUser(id: Long): User
+    }
+
+    interface OAuthService <<Business Logic>> {
+        +validateToken(token: String): Boolean
+    }
+
+    interface OAuthClient <<Web Client>> {
+        +exchangeCodeForToken(authCode: String): String
+    }
+
+    interface UserRepository {
+        +findByProviderId(providerId: String): User
+        +save(user: User): User
+    }
+
+    class User {
+        +id: Long
+        +providerId: String
+        +createdAt: Instant
+    }
+}
+
+UserController --> UserService
+UserService --> OAuthService
+UserService --> UserRepository
+OAuthService --> OAuthClient
+UserRepository --> User
+
+note bottom of OAuthClient
+  Отправляет запрос к API OAuth провайдера
+end note
+
+@enduml

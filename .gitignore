@@ -1,1 +1,10 @@
 .DS_Store
+.idea
+*.iml
+.env
+venv
+__pycache__/
+gradle
+.gradle
+build
+.kotlin

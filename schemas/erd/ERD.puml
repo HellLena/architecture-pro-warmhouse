@@ -1,0 +1,91 @@
+@startuml
+
+' Сущности
+entity "user" {
+  * **id** : BIGSERIAL <<PK>>
+  --
+  * provider_id : VARCHAR <<UK>>
+  --
+  * created_at : TIMESTAMP
+}
+
+entity "location" {
+  * **id** : BIGSERIAL <<PK>>
+  --
+  * user_id : BIGINT <<UK1>> <<FK>>
+  * name : VARCHAR <<UK1>>
+    parent_id : BIGINT <<FK>>
+  --
+  * created_at : TIMESTAMP
+  * updated_at : TIMESTAMP
+}
+
+entity "device" {
+  * **id** : BIGSERIAL <<PK>>
+  --
+  * serial_number : VARCHAR <<UK>>
+  * type : DEVICE_TYPE
+  * state : DEVICE_STATE
+    name : VARCHAR
+    location : BIGINT <<FK>>
+    device_group_id : BIGINT <<FK>>
+  --
+  * created_at : TIMESTAMP
+  * updated_at : TIMESTAMP
+}
+
+entity "device_group" {
+  * **id** : BIGSERIAL <<PK>>
+  --
+  * user_id : BIGINT <<UK1>> <<FK>>
+  * name : VARCHAR <<UK1>>
+  --
+  * created_at : TIMESTAMP
+  * updated_at : TIMESTAMP
+}
+
+entity "device_scenario" {
+  * **id** : BIGSERIAL <<PK>>
+  --
+  * name : VARCHAR
+  * device_id : BIGINT <<FK>> <<UK>>
+  * trigger : JSONB
+  * condition : JSONB
+  * command : JSONB
+  --
+  * created_at : TIMESTAMP
+  * updated_at : TIMESTAMP
+}
+
+entity "device_telemetry" {
+  * **id** : BIGSERIAL <<PK>>
+  --
+  * device_id : BIGINT <<FK>>
+  * telemetry : JSONB
+  --
+  * created_at : TIMESTAMP
+}
+
+enum "device_type" <<ENUM>> {
+    TEMPERATURE_SENSOR
+    LIGHT_SENSOR
+    GATE_SENSOR
+    VIDEO_CAMERA
+}
+
+enum "device_state" <<ENUM>> {
+    ACTIVE
+    INACTIVE
+}
+
+' Связи
+user ||--o{ location : ""
+location ||--o{ location : "id : parent_id"
+location ||--o{ device : ""
+device_group ||--o{ device : ""
+device ||--o{ device_telemetry : ""
+device ||--|| device_scenario : ""
+device_state ||--o{ device : ""
+device_type ||--o{ device : ""
+
+@enduml

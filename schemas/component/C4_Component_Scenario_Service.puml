@@ -1,0 +1,23 @@
+@startuml
+!include C4_Component_template.puml
+Container_Boundary(scenarioService, "Scenario Service (Kotlin / Spring Boot)") {
+    Component(scenario_ctrl, "ScenarioController", "REST API", "Принимает HTTP-запросы на управление сценариями")
+    Component(scenario_svc, "ScenarioService", "Business Logic", "Управление сценариями (CRUD)")
+    Component(telemetry_listener, "TelemetryListener", "Business Logic", "Слушает топик с показаниями устройств из брокера сообщений, передаёт данные на проверку триггера сценариев")
+    Component(command_svc, "CommandService", "Business Logic", "Проверяет, нужно ли триггерить команды управления согласно полученным показаниям и имеющимся сценариям")
+    Component(scenario_repo, "ScenarioRepository", "Data Access", "Читает и записывает данные о сценариях в БД")
+}
+
+ContainerDb(scenarioDB, "scenario_db", "PostgreSQL", "Хранит пользовательские сценарии управления устройствами")
+Container(apiGateway, "API Gateway", "Go, Gin", "Текущий монолит, в будущем gateway - маршрутизатор запросов")
+ContainerQueue(mqtt, "Брокер сообщений", "Mosquitto MQTT Broker", "Для связи с устройствами умного дома")
+
+Rel(apiGateway, scenario_ctrl, "")
+Rel(scenario_ctrl, scenario_svc, "")
+Rel(scenario_svc, scenario_repo, "")
+Rel(scenario_repo, scenarioDB, "")
+Rel(mqtt, telemetry_listener, "Получает показания")
+Rel(telemetry_listener, command_svc, "")
+Rel(command_svc, scenario_repo, "Проверяет сценарии")
+Rel(command_svc, mqtt, "Отправляет команды")
+@enduml
